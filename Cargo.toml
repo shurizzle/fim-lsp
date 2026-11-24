@@ -1,0 +1,23 @@
+[package]
+name = "fim-lsp"
+version = "0.1.0"
+edition = "2024"
+repository = "https://github.com/shurizzle/fim-lsp"
+
+[dependencies]
+futures = "0.3.34"
+lru = "0.19.2"
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls-no-provider", "json", "http2"] }
+ropey = "1.6.1"
+rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros", "io-std", "time", "sync"] }
+tower-lsp-server = "0.23.0"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

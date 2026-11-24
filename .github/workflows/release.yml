@@ -1,0 +1,76 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: aarch64-apple-darwin, os: macos-14 }
+          - { target: x86_64-pc-windows-msvc, os: windows-latest }
+          - { target: aarch64-pc-windows-msvc, os: windows-latest }
+          - { target: x86_64-unknown-linux-musl, os: ubuntu-latest, cross: true }
+          - { target: aarch64-unknown-linux-musl, os: ubuntu-latest, cross: true }
+          - { target: x86_64-unknown-freebsd, os: ubuntu-latest, cross: true }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - if: matrix.cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
+      - name: Build
+        shell: bash
+        run: ${{ matrix.cross && 'cross' || 'cargo' }} build --release --locked --target ${{ matrix.target }}
+      - name: Package
+        shell: bash
+        run: |
+          dir=target/${{ matrix.target }}/release
+          if [[ "${{ matrix.target }}" == *windows* ]]; then
+            7z a "fim-lsp-${{ matrix.target }}.zip" "./$dir/fim-lsp.exe"
+          else
+            tar czf "fim-lsp-${{ matrix.target }}.tar.gz" -C "$dir" fim-lsp
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: fim-lsp-${{ matrix.target }}.*
+
+  # aarch64-unknown-freebsd is tier 3 (no rustup std): build natively in a VM.
+  freebsd-aarch64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          arch: aarch64
+          usesh: true
+          prepare: pkg install -y rust
+          run: |
+            cargo build --release --locked
+            tar czf fim-lsp-aarch64-unknown-freebsd.tar.gz -C target/release fim-lsp
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aarch64-unknown-freebsd
+          path: fim-lsp-aarch64-unknown-freebsd.tar.gz
+
+  release:
+    needs: [build, freebsd-aarch64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: fim-lsp-*
