@@ -94,3 +94,7 @@ cargo clippy --all-targets
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for how the server works and
 [AGENTS.md](AGENTS.md) for contribution rules.
+
+## License
+
+[MIT](LICENSE)
