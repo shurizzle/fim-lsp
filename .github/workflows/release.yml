@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { target: aarch64-apple-darwin, os: macos-14 }
+          - { target: aarch64-apple-darwin, os: macos-latest }
           - { target: x86_64-pc-windows-msvc, os: windows-latest }
           - { target: aarch64-pc-windows-msvc, os: windows-latest }
           - { target: x86_64-unknown-linux-musl, os: ubuntu-latest, cross: true }
@@ -46,9 +46,10 @@ jobs:
           name: ${{ matrix.target }}
           path: fim-lsp-${{ matrix.target }}.*
 
-  # aarch64-unknown-freebsd is tier 3 (no rustup std): build natively in a VM.
+  # aarch64-unknown-freebsd is tier 3 (no rustup std): build natively in a VM,
+  # on an arm64 host so the guest is not emulated.
   freebsd-aarch64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
       - uses: vmactions/freebsd-vm@v1
