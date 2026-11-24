@@ -21,6 +21,7 @@ Single binary, async (tokio), built on `tower-lsp-server`.
 | `src/cache.rs` | LRU completion cache with typed-ahead lookup. |
 | `src/provider/mod.rs` | `Provider` enum, tagged by `type`, dispatches `complete`. |
 | `src/provider/deepseek.rs` | DeepSeek FIM client (`POST {baseUrl}/completions`). |
+| `src/provider/mistral.rs` | Mistral FIM client (`POST {baseUrl}/fim/completions`). |
 
 ## Request flow (`textDocument/inlineCompletion`)
 
@@ -58,7 +59,8 @@ Known limits:
 
 1. Add `src/provider/<name>.rs` with a `Config` (`#[serde(rename_all =
    "camelCase", deny_unknown_fields)]`, optional fields as `Option`) and an
-   `async fn complete(http, config, prefix, suffix) -> reqwest::Result<String>`.
+   `async fn complete(http, config, prefix, suffix) -> Result<String, Error>`
+   that posts through `provider::send` (keeps the API error message).
 2. Add a variant to `Provider` and a match arm in `Provider::complete`.
 3. Document its options in the README.
 

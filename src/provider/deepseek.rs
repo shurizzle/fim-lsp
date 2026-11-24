@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::{Error, send};
+
 const DEFAULT_MODEL: &str = "deepseek-flash";
 // FIM is only served by the beta endpoint.
 const DEFAULT_BASE_URL: &str = "https://api.deepseek.com/beta";
@@ -47,7 +49,7 @@ pub async fn complete(
     config: &Config,
     prefix: &str,
     suffix: &str,
-) -> reqwest::Result<String> {
+) -> Result<String, Error> {
     let body = Request {
         model: config.model.as_deref().unwrap_or(DEFAULT_MODEL),
         prompt: prefix,
@@ -58,15 +60,12 @@ pub async fn complete(
         stop: config.stop.as_deref(),
     };
     let base_url = config.base_url.as_deref().unwrap_or(DEFAULT_BASE_URL);
-    let resp: Response = http
-        .post(format!("{}/completions", base_url.trim_end_matches('/')))
-        .bearer_auth(&config.api_key)
-        .json(&body)
-        .send()
-        .await?
-        .error_for_status()?
-        .json()
-        .await?;
+    let resp: Response = send(
+        http.post(format!("{}/completions", base_url.trim_end_matches('/')))
+            .bearer_auth(&config.api_key)
+            .json(&body),
+    )
+    .await?;
     Ok(resp
         .choices
         .into_iter()

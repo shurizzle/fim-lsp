@@ -4,7 +4,7 @@ Language server that serves fill-in-the-middle (FIM) code completions as
 ghost text through `textDocument/inlineCompletion` (LSP 3.18).
 
 - Works with any filetype: the server attaches to every buffer.
-- Pluggable providers, selected by `type` (currently: DeepSeek).
+- Pluggable providers, selected by `type` (currently: DeepSeek, Mistral).
 - In-memory completion cache with typed-ahead reuse: typing through a
   suggestion, backspacing or undoing does not hit the API again.
 - Debounced requests, deduplication of identical in-flight requests.
@@ -54,6 +54,23 @@ fields are rejected.
 
 Optional fields that are not set are not sent, so the API defaults apply.
 API reference: <https://api-docs.deepseek.com/api/create-completion/>.
+
+### Mistral
+
+| Field | Required | Default | Notes |
+|---|---|---|---|
+| `type` | yes | | `"mistral"` |
+| `apiKey` | yes | | |
+| `model` | no | `"codestral-latest"` | |
+| `baseUrl` | no | `"https://api.mistral.ai/v1"` | `"https://codestral.mistral.ai/v1"` for Codestral keys |
+| `maxTokens` | no | API default | |
+| `minTokens` | no | API default | rejected by Codestral models (`400`) |
+| `temperature` | no | API default (model-dependent) | with `0`, `topP` must be unset or `1` |
+| `topP` | no | API default | |
+| `stop` | no | none | array of strings |
+| `randomSeed` | no | none | |
+
+API reference: <https://docs.mistral.ai/api/endpoint/fim>.
 
 ## Editor setup
 
